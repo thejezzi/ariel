@@ -23,4 +23,11 @@ describe('resolveDocsDir', () => {
 
     await expect(resolveDocsDir(path.join(root, 'manual-docs'))).resolves.toBe(path.join(root, 'manual-docs'));
   });
+
+  it('keeps explicit docs subdirectory paths unchanged', async () => {
+    await fs.mkdir(path.join(root, 'project', 'docs'), { recursive: true });
+    await fs.writeFile(path.join(root, 'project', 'docs', 'README.md'), '# Home');
+
+    await expect(resolveDocsDir(path.join(root, 'project', 'docs'))).resolves.toBe(path.join(root, 'project', 'docs'));
+  });
 });

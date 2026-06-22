@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import path from 'node:path';
 import { Command } from 'commander';
 import open from 'open';
+import { getInvocationDir } from './invocation-dir.js';
 import { resolveDocsDir } from './resolve-docs-dir.js';
 import { startServer } from './server.js';
 
@@ -10,7 +12,9 @@ interface RunOptions {
 }
 
 async function runApp(targetPath: string, options: RunOptions) {
-  const docsDir = await resolveDocsDir(targetPath);
+  const invocationDir = getInvocationDir();
+  const resolvedTargetPath = path.resolve(invocationDir, targetPath);
+  const docsDir = await resolveDocsDir(resolvedTargetPath);
   const server = await startServer({ docsDir, port: Number(options.port) });
   const url = `http://localhost:${server.port}/${server.site.startPage}`;
   console.log(url);

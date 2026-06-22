@@ -49,9 +49,10 @@ npx /link/to/my/repo my/project/with/docs --port 3232
 
 Directly from GitHub via `prepare`:
 ```bash
-npx --yes git+https://github.com/YOUR_USER/YOUR_REPO.git
-npx --yes git+https://github.com/YOUR_USER/YOUR_REPO.git my/project
-npx --yes git+https://github.com/YOUR_USER/YOUR_REPO.git my/project --port 3232
+npx --yes github:thejezzi/ariel
+npx --yes github:thejezzi/ariel my/project
+npx --yes github:thejezzi/ariel ./docs --port 3232
+npx --yes github:thejezzi/ariel my/project --port 3232
 ```
 
 Or during development:
@@ -89,4 +90,5 @@ docs-renderer my/project/with/docs --port 3232
 
 ## Packaging notes
 - `prepare` runs the build automatically when installed from GitHub
+- path resolution is based on the caller directory (`INIT_CWD`), so `npx` from GitHub/local packages uses your working directory, not the temporary install directory
 - published/git-installed package contents are limited to the files needed to run the CLI
