@@ -40,6 +40,8 @@ node dist/cli.js --port 3232
 node dist/cli.js my/project/with/docs --port 4567
 ```
 
+If the requested port is already occupied, the CLI automatically falls back to a free port and tells you which one it chose.
+
 With `npx` from a local repo path later:
 ```bash
 npx /link/to/my/repo
@@ -91,4 +93,5 @@ docs-renderer my/project/with/docs --port 3232
 ## Packaging notes
 - `prepare` runs the build automatically when installed from GitHub
 - path resolution is based on the caller directory (`INIT_CWD`), so `npx` from GitHub/local packages uses your working directory, not the temporary install directory
+- if the requested port is already busy, the CLI automatically switches to a free port instead of failing or accidentally talking to another already-running instance
 - published/git-installed package contents are limited to the files needed to run the CLI

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import open from 'open';
 import { getInvocationDir } from './invocation-dir.js';
+import { findAvailablePort } from './port.js';
 import { resolveDocsDir } from './resolve-docs-dir.js';
 import { startServer } from './server.js';
 
@@ -15,8 +16,13 @@ async function runApp(targetPath: string, options: RunOptions) {
   const invocationDir = getInvocationDir();
   const resolvedTargetPath = path.resolve(invocationDir, targetPath);
   const docsDir = await resolveDocsDir(resolvedTargetPath);
-  const server = await startServer({ docsDir, port: Number(options.port) });
+  const preferredPort = Number(options.port);
+  const port = await findAvailablePort(preferredPort);
+  const server = await startServer({ docsDir, port });
   const url = `http://localhost:${server.port}/${server.site.startPage}`;
+  if (server.port !== preferredPort) {
+    console.error(`Port ${preferredPort} is busy, using ${server.port} instead.`);
+  }
   console.log(url);
   if (options.open) await open(url);
 }
