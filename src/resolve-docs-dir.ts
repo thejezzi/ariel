@@ -22,7 +22,8 @@ export async function resolveDocsDir(input?: string): Promise<string> {
   const base = path.resolve(input || '.');
   const nestedDocs = path.join(base, 'docs');
 
-  if (await containsDocFiles(base)) return base;
+  if (path.basename(base).toLowerCase() === 'docs') return base;
   if (await existsDirectory(nestedDocs)) return nestedDocs;
+  if (await containsDocFiles(base)) return base;
   return base;
 }

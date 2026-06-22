@@ -4,9 +4,26 @@ title: Getting Started
 
 # Getting Started
 
-This page is rendered from **MDX**.
+This page demonstrates MDX + Markdown mixed content.
 
-<ul>
-  <li>MDX JSX works</li>
-  <li>Markdown still works</li>
-</ul>
+## Install
+
+```bash
+npm install
+npm run build
+node dist/cli.js . --port 4608
+```
+
+## Verify routing
+
+Open:
+
+- `/README`
+- `/guides/getting-started`
+- `/reference/configuration`
+
+## Inline MDX block
+
+<div style={{padding:'12px 14px', border:'1px solid #2e2e30', borderRadius:'8px'}}>
+  This callout is rendered from <strong>MDX JSX</strong>.
+</div>

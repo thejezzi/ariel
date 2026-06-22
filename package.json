@@ -8,11 +8,13 @@
   },
   "scripts": {
     "dev": "tsx src/cli.ts .",
-    "build": "npm run clean && tsc -p tsconfig.json && mkdir -p dist/client && cp -R src/client/. dist/client/ && chmod +x dist/cli.js",
+    "build:client:css": "tailwindcss -i ./src/client/styles.css -o ./dist/client/styles.css --minify",
+    "build": "npm run clean && tsc -p tsconfig.json && mkdir -p dist/client && npm run build:client:css && cp src/client/index.html dist/client/index.html && cp src/client/app.js dist/client/app.js && chmod +x dist/cli.js",
     "prepare": "npm run build",
     "clean": "rm -rf dist coverage .tmp-test-docs .tmp-test-docs-resolve",
     "test": "vitest run",
-    "start": "node dist/cli.js ."
+    "start": "node dist/cli.js .",
+    "mcp:playwright": "playwright-mcp --headless --port 8931 --browser chrome --caps vision --output-mode stdout"
   },
   "keywords": [
     "docs",
@@ -44,10 +46,15 @@
     "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
+    "@playwright/mcp": "^0.0.76",
+    "@tailwindcss/cli": "^4.3.1",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.10",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "playwright": "^1.61.0",
+    "tailwindcss": "^4.3.1",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"

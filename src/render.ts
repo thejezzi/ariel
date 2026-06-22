@@ -25,7 +25,14 @@ function preprocessMermaid(source: string): string {
 }
 
 const prettyCodeOptions = {
-  theme: 'github-dark',
+  theme: {
+    light: 'one-light',
+    dark: 'one-dark-pro',
+    dracula: 'dracula',
+    tokyo: 'tokyo-night',
+    catppuccin: 'catppuccin-mocha',
+    sublime: 'monokai',
+  },
   keepBackground: false,
 };
 
@@ -35,13 +42,15 @@ export async function renderDocument(filePath: string, routePath: string): Promi
   const extension = path.extname(filePath).toLowerCase();
   const preparedContent = preprocessMermaid(content);
 
+  const isMdx = extension === '.mdx';
+
   const compiled = await compile(preparedContent, {
     outputFormat: 'function-body',
     development: false,
-    format: extension === '.mdx' ? 'mdx' : 'md',
+    format: isMdx ? 'mdx' : 'md',
     remarkPlugins: [remarkGfm],
     rehypePlugins: [
-      rehypeRaw,
+      ...isMdx ? [] : [rehypeRaw],
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: 'wrap' }],
       [rehypePrettyCode, prettyCodeOptions],

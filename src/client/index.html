@@ -7,23 +7,40 @@
     <link rel="stylesheet" href="/assets/styles.css" />
   </head>
   <body>
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="sidebar-header">Docs</div>
-        <nav id="sidebar-tree"></nav>
-      </aside>
-      <main class="content">
-        <header class="content-header">
-          <h1 id="page-title"></h1>
-          <div id="page-path" class="page-path"></div>
-        </header>
-        <article id="page-content" class="prose"></article>
-      </main>
-      <aside class="toc">
-        <div class="sidebar-header">On this page</div>
-        <nav id="page-toc"></nav>
-      </aside>
+    <div class="app-shell">
+      <div class="app-layout">
+        <aside class="app-sidebar">
+          <nav id="sidebar-tree"></nav>
+          <div class="app-sidebar-footer">
+            <label class="app-theme-label">
+              <span>Theme</span>
+              <select id="theme-select" aria-label="Theme" class="app-theme-select">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="dracula">Dracula</option>
+                <option value="tokyo-night">Tokyo Night</option>
+                <option value="catppuccin">Catppuccin</option>
+                <option value="sublime">Sublime</option>
+              </select>
+            </label>
+          </div>
+        </aside>
+
+        <main class="app-main">
+          <div class="app-main-inner">
+            <nav id="breadcrumbs" class="breadcrumbs"></nav>
+            <article id="page-content" class="doc-prose"></article>
+          </div>
+        </main>
+
+        <aside class="app-toc">
+          <div class="app-toc-title">On this page</div>
+          <nav id="page-toc"></nav>
+        </aside>
+      </div>
     </div>
+
     <script type="module" src="/assets/app.js"></script>
   </body>
 </html>

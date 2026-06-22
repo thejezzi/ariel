@@ -27,7 +27,8 @@ export async function startServer(options: StartServerOptions) {
 
   app.get('/api/page/{*splat}', async (req, res, next) => {
     try {
-      const routePath = String(req.params.splat || '').replace(/^\/+/, '');
+      const splat = req.params.splat;
+      const routePath = (Array.isArray(splat) ? splat.join('/') : String(splat || '')).replace(/^\/+/, '');
       const actualPath = routePath || site.startPage;
       const nextSite = await buildSiteData(options.docsDir);
       const node = findNodeByRoute(nextSite.tree, actualPath);

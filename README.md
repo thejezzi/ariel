@@ -81,6 +81,22 @@ npm test
 npm run build
 ```
 
+## Playwright MCP
+Installed locally:
+```bash
+npm run mcp:playwright
+```
+
+It exposes an MCP endpoint at:
+```txt
+http://localhost:8931/mcp
+```
+
+Example client config is in:
+```txt
+MCP.playwright.example.json
+```
+
 ## Global-ish local execution
 After building, you can also use:
 ```bash

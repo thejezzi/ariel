@@ -13,6 +13,7 @@ interface DirEntryInfo {
 async function readDirectoryEntries(dir: string): Promise<DirEntryInfo[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   return entries
+    .filter((entry) => !['node_modules', '.git', '.a5c', 'dist', 'coverage'].includes(entry.name))
     .filter((entry) => entry.isDirectory() || isDocFile(entry.name))
     .map((entry) => ({
       name: entry.name,
