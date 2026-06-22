@@ -1,0 +1,103 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { parseOrderFile, sortNames } from './order.js';
+import { DocNode, SiteData } from './types.js';
+import { isDocFile, routeFromRelativePath, titleFromName } from './utils.js';
+
+interface DirEntryInfo {
+  name: string;
+  absolutePath: string;
+  isDirectory: boolean;
+}
+
+async function readDirectoryEntries(dir: string): Promise<DirEntryInfo[]> {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isDirectory() || isDocFile(entry.name))
+    .map((entry) => ({
+      name: entry.name,
+      absolutePath: path.join(dir, entry.name),
+      isDirectory: entry.isDirectory(),
+    }));
+}
+
+async function readOrder(dir: string): Promise<string[]> {
+  try {
+    return parseOrderFile(await fs.readFile(path.join(dir, '.order'), 'utf8'));
+  } catch {
+    return [];
+  }
+}
+
+async function buildNodes(rootDir: string, currentDir: string): Promise<DocNode[]> {
+  const entries = sortNames(await readDirectoryEntries(currentDir), await readOrder(currentDir));
+  const nodes: DocNode[] = [];
+
+  for (const entry of entries) {
+    const relativePath = path.relative(rootDir, entry.absolutePath);
+    if (entry.isDirectory) {
+      const children = await buildNodes(rootDir, entry.absolutePath);
+      if (children.length === 0) continue;
+      nodes.push({
+        kind: 'directory',
+        name: entry.name,
+        title: titleFromName(entry.name),
+        fullPath: relativePath,
+        routePath: routeFromRelativePath(relativePath),
+        children,
+      });
+    } else {
+      const extension = path.extname(entry.name).toLowerCase() as '.md' | '.mdx';
+      nodes.push({
+        kind: 'file',
+        name: entry.name,
+        title: titleFromName(entry.name),
+        fullPath: relativePath,
+        routePath: routeFromRelativePath(relativePath),
+        filePath: entry.absolutePath,
+        extension,
+      });
+    }
+  }
+
+  return nodes;
+}
+
+function flattenFiles(nodes: DocNode[]): DocNode[] {
+  return nodes.flatMap((node) => node.kind === 'file' ? [node] : flattenFiles(node.children ?? []));
+}
+
+function findStartPage(files: DocNode[]): DocNode {
+  const readmes = files.filter((file) => /^readme\.(md|mdx)$/i.test(file.name));
+  if (readmes.length > 0) {
+    return readmes.sort((a, b) => a.fullPath.split(path.sep).length - b.fullPath.split(path.sep).length)[0];
+  }
+  return files[0];
+}
+
+export async function buildSiteData(docsDir: string): Promise<SiteData> {
+  const resolvedDocsDir = path.resolve(docsDir);
+  const stat = await fs.stat(resolvedDocsDir).catch(() => null);
+  if (!stat?.isDirectory()) throw new Error(`Docs directory not found: ${resolvedDocsDir}`);
+
+  const tree = await buildNodes(resolvedDocsDir, resolvedDocsDir);
+  const files = flattenFiles(tree);
+  if (files.length === 0) throw new Error(`No .md or .mdx files found in ${resolvedDocsDir}`);
+
+  return {
+    docsDir: resolvedDocsDir,
+    startPage: findStartPage(files).routePath,
+    tree,
+  };
+}
+
+export function findNodeByRoute(nodes: DocNode[], routePath: string): DocNode | undefined {
+  for (const node of nodes) {
+    if (node.kind === 'file' && node.routePath === routePath) return node;
+    if (node.kind === 'directory') {
+      const found = findNodeByRoute(node.children ?? [], routePath);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}

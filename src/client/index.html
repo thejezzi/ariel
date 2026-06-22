@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Docs Renderer</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-header">Docs</div>
+        <nav id="sidebar-tree"></nav>
+      </aside>
+      <main class="content">
+        <header class="content-header">
+          <h1 id="page-title"></h1>
+          <div id="page-path" class="page-path"></div>
+        </header>
+        <article id="page-content" class="prose"></article>
+      </main>
+      <aside class="toc">
+        <div class="sidebar-header">On this page</div>
+        <nav id="page-toc"></nav>
+      </aside>
+    </div>
+    <script type="module" src="/assets/app.js"></script>
+  </body>
+</html>

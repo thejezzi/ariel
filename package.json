@@ -1,0 +1,54 @@
+{
+  "name": "docs-renderer",
+  "version": "0.1.0",
+  "description": "Local documentation renderer for Markdown and MDX docs folders",
+  "type": "module",
+  "bin": {
+    "docs-renderer": "dist/cli.js"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts .",
+    "build": "npm run clean && tsc -p tsconfig.json && mkdir -p dist/client && cp -R src/client/. dist/client/ && chmod +x dist/cli.js",
+    "prepare": "npm run build",
+    "clean": "rm -rf dist coverage .tmp-test-docs .tmp-test-docs-resolve",
+    "test": "vitest run",
+    "start": "node dist/cli.js ."
+  },
+  "keywords": [
+    "docs",
+    "markdown",
+    "mdx",
+    "mermaid",
+    "cli"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "@mdx-js/react": "^3.1.1",
+    "commander": "^14.0.0",
+    "express": "^5.1.0",
+    "gray-matter": "^4.0.3",
+    "open": "^10.2.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-pretty-code": "^0.14.1",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.10",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
