@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises';
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,7 @@ export async function startServer(options: StartServerOptions) {
   const site = await buildSiteData(options.docsDir);
   const here = path.dirname(fileURLToPath(import.meta.url));
   const clientPath = path.join(here, 'client');
+  const clientIndexHtml = await fs.readFile(path.join(clientPath, 'index.html'), 'utf8');
 
   app.get('/api/site', async (_req, res, next) => {
     try {
@@ -44,7 +46,7 @@ export async function startServer(options: StartServerOptions) {
 
   app.use('/assets', express.static(clientPath));
   app.get(['/', '/{*splat}'], (_req, res) => {
-    res.sendFile(path.join(clientPath, 'index.html'));
+    res.type('html').send(clientIndexHtml);
   });
 
   app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
