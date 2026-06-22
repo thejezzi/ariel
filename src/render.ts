@@ -9,20 +9,19 @@ import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypePrettyCode from 'rehype-pretty-code';
-import { visit } from 'unist-util-visit';
+import rehypeRaw from 'rehype-raw';
 import { PageData } from './types.js';
 import { extractTableOfContents } from './toc.js';
 import { titleFromName } from './utils.js';
 
-function remarkMermaid() {
-  return (tree: unknown) => {
-    visit(tree as any, 'code', (node: any) => {
-      if (node.lang === 'mermaid') {
-        node.type = 'html';
-        node.value = `<pre class="mermaid">${node.value}</pre>`;
-      }
-    });
-  };
+function preprocessMermaid(source: string): string {
+  return source.replace(/```mermaid\n([\s\S]*?)```/g, (_match, code: string) => {
+    const escaped = code.trimEnd()
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return `\n<pre class="mermaid">${escaped}</pre>\n`;
+  });
 }
 
 const prettyCodeOptions = {
@@ -34,13 +33,15 @@ export async function renderDocument(filePath: string, routePath: string): Promi
   const source = await fs.readFile(filePath, 'utf8');
   const { content, data } = matter(source);
   const extension = path.extname(filePath).toLowerCase();
+  const preparedContent = preprocessMermaid(content);
 
-  const compiled = await compile(content, {
+  const compiled = await compile(preparedContent, {
     outputFormat: 'function-body',
     development: false,
     format: extension === '.mdx' ? 'mdx' : 'md',
-    remarkPlugins: [remarkGfm, remarkMermaid],
+    remarkPlugins: [remarkGfm],
     rehypePlugins: [
+      rehypeRaw,
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: 'wrap' }],
       [rehypePrettyCode, prettyCodeOptions],
