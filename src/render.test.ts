@@ -22,4 +22,16 @@ describe('renderDocument', () => {
     expect(page.html).toContain('flowchart LR');
     expect(page.html).toContain('A --&gt; B');
   });
+
+  it('rewrites markdown links to md files to extensionless ariel routes', async () => {
+    await fs.mkdir(path.join(root, 'guides'), { recursive: true });
+    const file = path.join(root, 'guides', 'intro.md');
+    await fs.writeFile(file, '[CLI](../reference/cli.md)\n[Local](./advanced.md#deep-dive)\n[Readme](../README.md)\n');
+
+    const page = await renderDocument(file, 'guides/intro');
+
+    expect(page.html).toContain('href="/reference/cli"');
+    expect(page.html).toContain('href="/guides/advanced#deep-dive"');
+    expect(page.html).toContain('href="/README"');
+  });
 });

@@ -12,7 +12,7 @@ import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeRaw from 'rehype-raw';
 import { PageData } from './types.js';
 import { extractTableOfContents } from './toc.js';
-import { titleFromName } from './utils.js';
+import { normalizeDocHref, titleFromName } from './utils.js';
 
 function preprocessMermaid(source: string): string {
   return source.replace(/```mermaid\n([\s\S]*?)```/g, (_match, code: string) => {
@@ -35,6 +35,13 @@ const prettyCodeOptions = {
   },
   keepBackground: false,
 };
+
+function rewriteDocLinks(html: string, routePath: string): string {
+  return html.replace(/href="([^"]+)"/g, (match, href: string) => {
+    const normalized = normalizeDocHref(href, routePath);
+    return normalized === href ? match : `href="${normalized}"`;
+  });
+}
 
 export async function renderDocument(filePath: string, routePath: string): Promise<PageData> {
   const source = await fs.readFile(filePath, 'utf8');
@@ -63,7 +70,7 @@ export async function renderDocument(filePath: string, routePath: string): Promi
   });
 
   const Content = runtime.default;
-  const html = renderToStaticMarkup(React.createElement(Content));
+  const html = rewriteDocLinks(renderToStaticMarkup(React.createElement(Content)), routePath);
   const title = typeof data.title === 'string' ? data.title : titleFromName(path.basename(filePath));
 
   return {

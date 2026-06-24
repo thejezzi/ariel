@@ -130,6 +130,19 @@ function setActiveTocLink(id) {
   links.forEach((link) => link.classList.toggle('toc-link-active', link.dataset.id === id));
 }
 
+function scrollToHash(hash) {
+  if (!hash) return false;
+  const id = hash.replace(/^#/, '');
+  if (!id) return false;
+
+  const target = document.getElementById(id);
+  if (!target) return false;
+
+  target.scrollIntoView({ block: 'start', behavior: 'auto' });
+  setActiveTocLink(id);
+  return true;
+}
+
 function renderToc(entries) {
   const root = document.getElementById('page-toc');
   root.innerHTML = '';
@@ -146,6 +159,13 @@ function renderToc(entries) {
     a.textContent = entry.text;
     a.dataset.id = entry.id;
     a.className = 'toc-link';
+    a.addEventListener('click', (event) => {
+      event.preventDefault();
+      const hash = `#${entry.id}`;
+      const routePath = state.page?.routePath || '';
+      history.replaceState(history.state, '', `/${routePath}${hash}`);
+      scrollToHash(hash);
+    });
     li.appendChild(a);
     ul.appendChild(li);
   }
@@ -429,7 +449,8 @@ function enhanceContent() {
 }
 
 async function navigate(routePath, push = true) {
-  const response = await fetch('/api/page/' + routePath);
+  const [cleanRoutePath, hash = ''] = routePath.split('#');
+  const response = await fetch('/api/page/' + cleanRoutePath);
   if (!response.ok) throw new Error('Failed to load page');
   const data = await response.json();
   state.site = data.site;
@@ -446,13 +467,14 @@ async function navigate(routePath, push = true) {
   enhanceContent();
   syncCodeTheme(localStorage.getItem(THEME_STORAGE_KEY) || 'system');
 
-  if (push) history.pushState({}, '', '/' + routePath);
-  window.scrollTo(0, 0);
+  const targetUrl = `/${cleanRoutePath}${hash ? `#${hash}` : ''}`;
+  if (push) history.pushState({}, '', targetUrl);
   await renderMermaid();
+  if (!scrollToHash(hash ? `#${hash}` : '')) window.scrollTo(0, 0);
 }
 
 window.addEventListener('popstate', () => {
-  const route = location.pathname.replace(/^\//, '');
+  const route = `${location.pathname.replace(/^\//, '')}${location.hash}`;
   navigate(route || state.site?.startPage || '', false).catch(console.error);
 });
 
@@ -462,7 +484,7 @@ fetch('/api/site')
   .then((response) => response.json())
   .then((site) => {
     state.site = site;
-    const route = location.pathname.replace(/^\//, '') || site.startPage;
+    const route = `${location.pathname.replace(/^\//, '') || site.startPage}${location.hash}`;
     return navigate(route, false);
   })
   .catch((error) => {
