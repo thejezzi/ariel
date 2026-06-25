@@ -9,6 +9,9 @@ Local documentation renderer for a simple `docs/` folder.
 - Sidebar tree from directory structure
 - `.order` files for explicit ordering
 - Start page resolved from the highest-level `README.md`
+- Local full-text search with keyboard shortcuts
+- GitHub-style admonitions such as `> [!NOTE]`
+- Broken internal link warnings with inline indicators
 - CLI starts a local webserver and opens the browser
 
 ## Install
@@ -67,6 +70,15 @@ npm run dev
 - Directories become sidebar sections
 - Add a `.order` file in any directory to control file/folder order
 - Frontmatter `title` overrides the generated page title
+- Internal links to missing pages or missing heading anchors are marked inline
+- GitHub-style admonitions are supported
+
+Admonition example:
+
+```md
+> [!NOTE]
+> This note renders as a styled callout.
+```
 
 Example `.order`:
 ```txt

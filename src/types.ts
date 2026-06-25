@@ -17,10 +17,19 @@ export interface PageData {
   sourcePath: string;
   html: string;
   tableOfContents: Array<{ depth: number; text: string; id: string }>;
+  anchorIds: string[];
 }
 
 export interface SiteData {
   docsDir: string;
   startPage: string;
   tree: DocNode[];
+}
+
+export interface SearchDocument {
+  id: string;
+  title: string;
+  routePath: string;
+  headings: string[];
+  bodyText: string;
 }

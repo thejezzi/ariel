@@ -6,21 +6,28 @@ import * as jsxRuntime from 'react/jsx-runtime';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import remarkGfm from 'remark-gfm';
+import { remarkAdmonitions } from './admonitions.js';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeRaw from 'rehype-raw';
 import { PageData } from './types.js';
 import { extractTableOfContents } from './toc.js';
-import { normalizeDocHref, titleFromName } from './utils.js';
+import { normalizeAssetSrc, normalizeDocHref, titleFromName } from './utils.js';
 
 function preprocessMermaid(source: string): string {
   return source.replace(/```mermaid\n([\s\S]*?)```/g, (_match, code: string) => {
-    const escaped = code.trimEnd()
+    const rawCode = code.trimEnd();
+    const escaped = rawCode
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-    return `\n<pre class="mermaid">${escaped}</pre>\n`;
+    const escapedAttribute = rawCode
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return `\n<pre class="mermaid" data-mermaid-source="${escapedAttribute}">${escaped}</pre>\n`;
   });
 }
 
@@ -43,7 +50,18 @@ function rewriteDocLinks(html: string, routePath: string): string {
   });
 }
 
-export async function renderDocument(filePath: string, routePath: string): Promise<PageData> {
+function rewriteAssetSources(html: string, routePath: string): string {
+  return html.replace(/src="([^"]+)"/g, (match, src: string) => {
+    const normalized = normalizeAssetSrc(src, routePath);
+    return normalized === src ? match : `src="${normalized}"`;
+  });
+}
+
+function extractAnchorIds(html: string): string[] {
+  return [...html.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]);
+}
+
+export async function renderDocument(filePath: string, routePath: string, _docsDir?: string): Promise<PageData> {
   const source = await fs.readFile(filePath, 'utf8');
   const { content, data } = matter(source);
   const extension = path.extname(filePath).toLowerCase();
@@ -55,7 +73,7 @@ export async function renderDocument(filePath: string, routePath: string): Promi
     outputFormat: 'function-body',
     development: false,
     format: isMdx ? 'mdx' : 'md',
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [remarkGfm, remarkAdmonitions],
     rehypePlugins: [
       ...isMdx ? [] : [rehypeRaw],
       rehypeSlug,
@@ -70,7 +88,7 @@ export async function renderDocument(filePath: string, routePath: string): Promi
   });
 
   const Content = runtime.default;
-  const html = rewriteDocLinks(renderToStaticMarkup(React.createElement(Content)), routePath);
+  const html = rewriteAssetSources(rewriteDocLinks(renderToStaticMarkup(React.createElement(Content)), routePath), routePath);
   const title = typeof data.title === 'string' ? data.title : titleFromName(path.basename(filePath));
 
   return {
@@ -79,5 +97,6 @@ export async function renderDocument(filePath: string, routePath: string): Promi
     sourcePath: filePath,
     html,
     tableOfContents: extractTableOfContents(html),
+    anchorIds: extractAnchorIds(html),
   };
 }

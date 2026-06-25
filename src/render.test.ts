@@ -28,10 +28,33 @@ describe('renderDocument', () => {
     const file = path.join(root, 'guides', 'intro.md');
     await fs.writeFile(file, '[CLI](../reference/cli.md)\n[Local](./advanced.md#deep-dive)\n[Readme](../README.md)\n');
 
-    const page = await renderDocument(file, 'guides/intro');
+    const page = await renderDocument(file, 'guides/intro', root);
 
     expect(page.html).toContain('href="/reference/cli"');
     expect(page.html).toContain('href="/guides/advanced#deep-dive"');
     expect(page.html).toContain('href="/README"');
+  });
+
+  it('rewrites local image sources to docs asset urls', async () => {
+    await fs.mkdir(path.join(root, 'reference', 'elmo'), { recursive: true });
+    const file = path.join(root, 'reference', 'elmo', 'README.md');
+    await fs.writeFile(file, '![Logo](./elmo-logo.png)\n<img src="../shared/mascot.svg" alt="Mascot" />\n');
+
+    const page = await renderDocument(file, 'reference/elmo/README', root);
+
+    expect(page.html).toContain('src="/docs-assets/reference/elmo/elmo-logo.png"');
+    expect(page.html).toContain('src="/docs-assets/reference/shared/mascot.svg"');
+  });
+
+  it('renders note admonitions', async () => {
+    await fs.mkdir(root, { recursive: true });
+    const file = path.join(root, 'README.md');
+    await fs.writeFile(file, '> [!NOTE]\n> Hello note\n');
+
+    const page = await renderDocument(file, 'README', root);
+
+    expect(page.html).toContain('class="admonition admonition-note"');
+    expect(page.html).toContain('admonition-title">Note<');
+    expect(page.html).toContain('Hello note');
   });
 });

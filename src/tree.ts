@@ -30,6 +30,15 @@ async function readOrder(dir: string): Promise<string[]> {
   }
 }
 
+function moveReadmeFirst(nodes: DocNode[], isRootDir: boolean): DocNode[] {
+  if (isRootDir) return nodes;
+  const readmeIndex = nodes.findIndex((node) => node.kind === 'file' && /^readme\.(md|mdx)$/i.test(node.name));
+  if (readmeIndex <= 0) return nodes;
+  const [readme] = nodes.splice(readmeIndex, 1);
+  nodes.unshift(readme);
+  return nodes;
+}
+
 async function buildNodes(rootDir: string, currentDir: string): Promise<DocNode[]> {
   const entries = sortNames(await readDirectoryEntries(currentDir), await readOrder(currentDir));
   const nodes: DocNode[] = [];
@@ -61,7 +70,7 @@ async function buildNodes(rootDir: string, currentDir: string): Promise<DocNode[
     }
   }
 
-  return nodes;
+  return moveReadmeFirst(nodes, path.resolve(rootDir) === path.resolve(currentDir));
 }
 
 function flattenFiles(nodes: DocNode[]): DocNode[] {
@@ -97,6 +106,28 @@ export function findNodeByRoute(nodes: DocNode[], routePath: string): DocNode | 
     if (node.kind === 'file' && node.routePath === routePath) return node;
     if (node.kind === 'directory') {
       const found = findNodeByRoute(node.children ?? [], routePath);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+function findFirstFileInDirectory(node: DocNode): DocNode | undefined {
+  if (node.kind === 'file') return node;
+  for (const child of node.children ?? []) {
+    if (child.kind === 'file') return child;
+    const nested = findFirstFileInDirectory(child);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
+export function findPageNodeByRoute(nodes: DocNode[], routePath: string): DocNode | undefined {
+  for (const node of nodes) {
+    if (node.kind === 'file' && node.routePath === routePath) return node;
+    if (node.kind === 'directory') {
+      if (node.routePath === routePath) return findFirstFileInDirectory(node);
+      const found = findPageNodeByRoute(node.children ?? [], routePath);
       if (found) return found;
     }
   }

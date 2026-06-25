@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { buildSiteData } from './tree.js';
+import { buildSiteData, findPageNodeByRoute } from './tree.js';
 
 const root = path.resolve('.tmp-test-docs');
 
@@ -23,5 +23,17 @@ describe('buildSiteData', () => {
     expect(site.startPage).toBe('README');
     expect(site.tree[0].kind).toBe('directory');
     expect(site.tree[0].children?.map((child) => child.name)).toEqual(['advanced.mdx', 'intro.md']);
+  });
+
+  it('falls back to first page when route points to directory', async () => {
+    await fs.mkdir(path.join(root, 'ref', 'dir'), { recursive: true });
+    await fs.writeFile(path.join(root, 'ref', 'dir', 'README.md'), '# Dir Home');
+    await fs.writeFile(path.join(root, 'ref', 'dir', 'next.md'), '# Next');
+
+    const site = await buildSiteData(root);
+    const page = findPageNodeByRoute(site.tree, 'ref/dir');
+
+    expect(page?.kind).toBe('file');
+    expect(page?.routePath).toBe('ref/dir/README');
   });
 });

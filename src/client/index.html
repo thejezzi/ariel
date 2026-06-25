@@ -10,7 +10,10 @@
     <div class="app-shell">
       <div class="app-layout">
         <aside class="app-sidebar">
-          <nav id="sidebar-tree"></nav>
+          <div class="app-sidebar-scroll">
+            <button id="search-trigger" class="search-trigger" type="button" aria-label="Open search">Search docs</button>
+            <nav id="sidebar-tree"></nav>
+          </div>
           <div class="app-sidebar-footer">
             <label class="app-theme-label">
               <span>Theme</span>
@@ -29,7 +32,9 @@
 
         <main class="app-main">
           <div class="app-main-inner">
-            <nav id="breadcrumbs" class="breadcrumbs"></nav>
+            <div class="page-toolbar">
+              <nav id="breadcrumbs" class="breadcrumbs"></nav>
+            </div>
             <article id="page-content" class="doc-prose"></article>
           </div>
         </main>
@@ -38,6 +43,16 @@
           <div class="app-toc-title">On this page</div>
           <nav id="page-toc"></nav>
         </aside>
+      </div>
+    </div>
+
+    <button id="clear-search-highlights" class="clear-search-highlights clear-search-highlights-floating" type="button" hidden>Clear highlights</button>
+    <div id="page-processing-toast" class="page-processing-toast" hidden>Processing links and page metadata…</div>
+
+    <div id="search-overlay" class="search-overlay" hidden>
+      <div class="search-modal">
+        <input id="search-input" class="search-input search-input-modal" type="search" placeholder="Search docs" aria-label="Search docs" />
+        <div id="search-results" class="search-results-modal"></div>
       </div>
     </div>
 

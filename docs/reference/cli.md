@@ -22,3 +22,9 @@ docs-renderer ./docs --port 3232
 
 docs-renderer my-project --port 4567
 ```
+
+## Notes
+
+- Directory routes fall back to the first page in that directory.
+- Internal broken links are marked inline in rendered docs.
+- Search can be opened with `/` or `Cmd/Ctrl+K`.

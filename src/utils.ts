@@ -27,6 +27,12 @@ export function routeFromRelativePath(relativePath: string): string {
   return posix.replace(/\.(md|mdx)$/i, '');
 }
 
+function resolveRouteRelativePath(targetPath: string, currentRoutePath: string): string {
+  if (targetPath.startsWith('/')) return targetPath.replace(/^\/+/, '');
+  const currentDir = path.posix.dirname(toPosixPath(currentRoutePath));
+  return path.posix.normalize(path.posix.join(currentDir === '.' ? '' : currentDir, targetPath));
+}
+
 export function normalizeDocHref(href: string, currentRoutePath: string): string {
   const trimmed = href.trim();
   if (!trimmed || NON_DOC_SCHEME_RE.test(trimmed) || trimmed.startsWith('//')) return href;
@@ -36,14 +42,19 @@ export function normalizeDocHref(href: string, currentRoutePath: string): string
   const hashSuffix = hash ? `#${hash}` : '';
 
   if (/\.(md|mdx)$/i.test(pathPart)) {
-    if (pathPart.startsWith('/')) {
-      return `/${routeFromRelativePath(pathPart.replace(/^\/+/, ''))}${hashSuffix}`;
-    }
-
-    const currentDir = path.posix.dirname(toPosixPath(currentRoutePath));
-    const resolved = path.posix.normalize(path.posix.join(currentDir === '.' ? '' : currentDir, pathPart));
+    const resolved = resolveRouteRelativePath(pathPart, currentRoutePath);
     return `/${routeFromRelativePath(resolved)}${hashSuffix}`;
   }
 
   return href;
+}
+
+export function normalizeAssetSrc(src: string, currentRoutePath: string): string {
+  const trimmed = src.trim();
+  if (!trimmed || NON_DOC_SCHEME_RE.test(trimmed) || trimmed.startsWith('//') || trimmed.startsWith('#')) return src;
+
+  const [pathPart, hash = ''] = trimmed.split('#');
+  const resolved = resolveRouteRelativePath(pathPart, currentRoutePath);
+  const hashSuffix = hash ? `#${hash}` : '';
+  return `/docs-assets/${resolved}${hashSuffix}`;
 }
