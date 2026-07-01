@@ -29,18 +29,29 @@ node dist/cli.js
 You can also point it at either:
 - a docs folder directly, or
 - a project folder that contains `docs/`
+- a single `.md` / `.mdx` file (single-file mode renders only that file)
 
 Examples:
 ```bash
 node dist/cli.js .
 node dist/cli.js my/docs/folder
 node dist/cli.js my/project/with/docs
+node dist/cli.js docs/guides/install.md   # single-file mode
 ```
+
+In single-file mode the nearest `docs/` ancestor is used as the docs directory,
+so the file's natural route is preserved (e.g. `docs/guides/install.md` is served
+at `/guides/install`). If no `docs/` ancestor exists, the file's parent folder
+becomes the docs directory and the route is the file basename.
+
+Only `.md` and `.mdx` files are supported in single-file mode; other files exit
+with a clear error.
 
 Pick a port explicitly:
 ```bash
 node dist/cli.js --port 3232
 node dist/cli.js my/project/with/docs --port 4567
+node dist/cli.js docs/guides/install.md --port 4567
 ```
 
 If the requested port is already occupied, the CLI automatically falls back to a free port and tells you which one it chose.
@@ -50,6 +61,7 @@ With `npx` from a local repo path later:
 npx /link/to/my/repo
 npx /link/to/my/repo my/docs/folder
 npx /link/to/my/repo my/project/with/docs --port 3232
+npx /link/to/my/repo docs/guides/install.md
 ```
 
 Directly from GitHub via `prepare`:
@@ -58,6 +70,7 @@ npx --yes github:thejezzi/ariel
 npx --yes github:thejezzi/ariel my/project
 npx --yes github:thejezzi/ariel ./docs --port 3232
 npx --yes github:thejezzi/ariel my/project --port 3232
+npx --yes github:thejezzi/ariel docs/guides/install.md
 ```
 
 Or during development:

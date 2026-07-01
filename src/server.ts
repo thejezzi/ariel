@@ -11,11 +11,12 @@ import { annotateBrokenLinks } from './links.js';
 export interface StartServerOptions {
   docsDir: string;
   port: number;
+  singleFile?: string;
 }
 
 export async function startServer(options: StartServerOptions) {
   const app = express();
-  const site = await buildSiteData(options.docsDir);
+  const site = await buildSiteData(options.docsDir, { singleFile: options.singleFile });
   const here = path.dirname(fileURLToPath(import.meta.url));
   const clientPath = path.join(here, 'client');
   const clientIndexHtml = await fs.readFile(path.join(clientPath, 'index.html'), 'utf8');
@@ -62,7 +63,7 @@ export async function startServer(options: StartServerOptions) {
   }
 
   async function getSite() {
-    cachedSite ??= await buildSiteData(options.docsDir);
+    cachedSite ??= await buildSiteData(options.docsDir, { singleFile: options.singleFile });
     return cachedSite;
   }
 

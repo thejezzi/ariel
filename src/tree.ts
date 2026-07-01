@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parseOrderFile, sortNames } from './order.js';
 import { DocNode, SiteData } from './types.js';
-import { isDocFile, routeFromRelativePath, titleFromName } from './utils.js';
+import { isDocFile, routeFromRelativePath, titleFromName, toPosixPath } from './utils.js';
 
 interface DirEntryInfo {
   name: string;
@@ -85,10 +85,23 @@ function findStartPage(files: DocNode[]): DocNode {
   return files[0];
 }
 
-export async function buildSiteData(docsDir: string): Promise<SiteData> {
+export interface BuildSiteDataOptions {
+  singleFile?: string;
+}
+
+export async function buildSiteData(docsDir: string, options: BuildSiteDataOptions = {}): Promise<SiteData> {
   const resolvedDocsDir = path.resolve(docsDir);
   const stat = await fs.stat(resolvedDocsDir).catch(() => null);
   if (!stat?.isDirectory()) throw new Error(`Docs directory not found: ${resolvedDocsDir}`);
+
+  if (options.singleFile) {
+    const fileNode = await buildSingleFileNode(resolvedDocsDir, options.singleFile);
+    return {
+      docsDir: resolvedDocsDir,
+      startPage: fileNode.routePath,
+      tree: [fileNode],
+    };
+  }
 
   const tree = await buildNodes(resolvedDocsDir, resolvedDocsDir);
   const files = flattenFiles(tree);
@@ -98,6 +111,25 @@ export async function buildSiteData(docsDir: string): Promise<SiteData> {
     docsDir: resolvedDocsDir,
     startPage: findStartPage(files).routePath,
     tree,
+  };
+}
+
+async function buildSingleFileNode(docsDir: string, relativeFile: string): Promise<DocNode> {
+  const absolutePath = path.resolve(docsDir, relativeFile);
+  const stat = await fs.stat(absolutePath).catch(() => null);
+  if (!stat?.isFile()) throw new Error(`File not found: ${relativeFile}`);
+  if (!isDocFile(path.basename(absolutePath))) throw new Error(`Single-file mode only supports .md or .mdx files: ${relativeFile}`);
+
+  const relativePath = path.relative(docsDir, absolutePath);
+  const extension = path.extname(absolutePath).toLowerCase() as '.md' | '.mdx';
+  return {
+    kind: 'file',
+    name: path.basename(absolutePath),
+    title: titleFromName(path.basename(absolutePath)),
+    fullPath: toPosixPath(relativePath),
+    routePath: routeFromRelativePath(relativePath),
+    filePath: absolutePath,
+    extension,
   };
 }
 

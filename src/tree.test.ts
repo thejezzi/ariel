@@ -36,4 +36,30 @@ describe('buildSiteData', () => {
     expect(page?.kind).toBe('file');
     expect(page?.routePath).toBe('ref/dir/README');
   });
+
+  it('limits the tree to a single file when singleFile is given', async () => {
+    await fs.mkdir(path.join(root, 'guides'), { recursive: true });
+    await fs.writeFile(path.join(root, 'README.md'), '# Home');
+    await fs.writeFile(path.join(root, 'guides', 'intro.md'), '# Intro');
+    await fs.writeFile(path.join(root, 'guides', 'install.md'), '# Install');
+
+    const site = await buildSiteData(root, { singleFile: 'guides/install.md' });
+
+    expect(site.startPage).toBe('guides/install');
+    expect(site.tree).toHaveLength(1);
+    expect(site.tree[0].kind).toBe('file');
+    expect(site.tree[0].routePath).toBe('guides/install');
+    expect(site.tree[0].filePath).toBe(path.join(root, 'guides', 'install.md'));
+  });
+
+  it('errors out when the single file is missing', async () => {
+    await fs.mkdir(root, { recursive: true });
+    await expect(buildSiteData(root, { singleFile: 'missing.md' })).rejects.toThrow(/File not found/);
+  });
+
+  it('rejects non-markdown files in single-file mode', async () => {
+    await fs.mkdir(root, { recursive: true });
+    await fs.writeFile(path.join(root, 'config.json'), '{}');
+    await expect(buildSiteData(root, { singleFile: 'config.json' })).rejects.toThrow(/Single-file mode only supports/);
+  });
 });

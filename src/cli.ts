@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import open from 'open';
 import { getInvocationDir } from './invocation-dir.js';
 import { findAvailablePort } from './port.js';
-import { resolveDocsDir } from './resolve-docs-dir.js';
+import { resolveDocsTarget } from './resolve-docs-dir.js';
 import { startServer } from './server.js';
 
 interface RunOptions {
@@ -15,10 +15,10 @@ interface RunOptions {
 async function runApp(targetPath: string, options: RunOptions) {
   const invocationDir = getInvocationDir();
   const resolvedTargetPath = path.resolve(invocationDir, targetPath);
-  const docsDir = await resolveDocsDir(resolvedTargetPath);
+  const target = await resolveDocsTarget(resolvedTargetPath);
   const preferredPort = Number(options.port);
   const port = await findAvailablePort(preferredPort);
-  const server = await startServer({ docsDir, port });
+  const server = await startServer({ docsDir: target.docsDir, port, singleFile: target.singleFile });
   const url = `http://localhost:${server.port}/${server.site.startPage}`;
   if (server.port !== preferredPort) {
     console.error(`Port ${preferredPort} is busy, using ${server.port} instead.`);
@@ -33,7 +33,7 @@ program
   .name('docs-renderer')
   .description('Serve a local markdown/mdx documentation folder in the browser')
   .version('0.1.0')
-  .argument('[path]', 'docs directory, or a project folder containing ./docs', '.')
+  .argument('[path]', 'docs directory, project folder containing ./docs, or a single .md/.mdx file', '.')
   .option('-p, --port <port>', 'port to listen on', '3232')
   .option('--no-open', 'do not open the browser automatically')
   .action(async (targetPath, options) => {
