@@ -25,11 +25,30 @@ export async function startServer(options: StartServerOptions) {
   let cachedPages: Awaited<ReturnType<typeof renderDocument>>[] | null = null;
   let pageCache = new Map<string, Awaited<ReturnType<typeof renderDocument>>>();
   let watchers: FSWatcher[] = [];
+  const sseClients = new Set<express.Response>();
+  let reloadTimer: NodeJS.Timeout | null = null;
+  let heartbeatTimer: NodeJS.Timeout | null = null;
+  const RELOAD_DEBOUNCE_MS = 150;
+  const HEARTBEAT_INTERVAL_MS = 30_000;
 
   function invalidateCache() {
     cachedSite = null;
     cachedPages = null;
     pageCache = new Map();
+  }
+
+  function broadcastReload() {
+    if (reloadTimer) clearTimeout(reloadTimer);
+    reloadTimer = setTimeout(() => {
+      reloadTimer = null;
+      for (const client of sseClients) {
+        try {
+          client.write('event: reload\ndata: \n\n');
+        } catch {
+          sseClients.delete(client);
+        }
+      }
+    }, RELOAD_DEBOUNCE_MS);
   }
 
   async function setupWatchers(rootDir: string) {
@@ -53,6 +72,7 @@ export async function startServer(options: StartServerOptions) {
       try {
         const watcher = watch(dir, () => {
           invalidateCache();
+          broadcastReload();
           setupWatchers(rootDir).catch(() => {});
         });
         watchers.push(watcher);
@@ -156,6 +176,19 @@ export async function startServer(options: StartServerOptions) {
     }
   });
 
+  app.get('/api/reload', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+    res.write(':ok\n\n');
+
+    sseClients.add(res);
+    req.on('close', () => {
+      sseClients.delete(res);
+    });
+  });
+
   app.use('/assets', express.static(clientPath));
   app.use('/docs-assets', express.static(options.docsDir));
   app.get(['/', '/{*splat}'], (_req, res) => {
@@ -173,6 +206,16 @@ export async function startServer(options: StartServerOptions) {
     const instance = app.listen(options.port, () => resolve(instance));
   });
 
+  heartbeatTimer = setInterval(() => {
+    for (const client of sseClients) {
+      try {
+        client.write(':hb\n\n');
+      } catch {
+        sseClients.delete(client);
+      }
+    }
+  }, HEARTBEAT_INTERVAL_MS);
+
   getAllPages().catch(() => {});
 
   const address = server.address();
@@ -183,6 +226,22 @@ export async function startServer(options: StartServerOptions) {
     site,
     port,
     close: () => new Promise<void>((resolve, reject) => {
+      if (reloadTimer) {
+        clearTimeout(reloadTimer);
+        reloadTimer = null;
+      }
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
+      for (const client of sseClients) {
+        try {
+          client.end();
+        } catch {
+          // ignore
+        }
+      }
+      sseClients.clear();
       watchers.forEach((watcher) => watcher.close());
       server.close((error) => error ? reject(error) : resolve());
     }),

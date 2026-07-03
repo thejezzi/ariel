@@ -897,6 +897,22 @@ window.addEventListener('popstate', () => {
 
 initTheme();
 initSearch();
+initAutoReload();
+
+function initAutoReload() {
+  if (typeof EventSource === 'undefined') return;
+  try {
+    const source = new EventSource('/api/reload');
+    source.addEventListener('reload', () => {
+      window.location.reload();
+    });
+    source.onerror = () => {
+      // EventSource auto-reconnects on transient errors; no action needed.
+    };
+  } catch (error) {
+    console.error('Auto-reload unavailable:', error);
+  }
+}
 
 (() => {
   const route = `${location.pathname.replace(/^\//, '').replace(/\/+$/, '')}${location.hash}`;

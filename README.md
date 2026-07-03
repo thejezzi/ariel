@@ -10,6 +10,7 @@ Local documentation renderer for a simple `docs/` folder.
 - `.order` files for explicit ordering
 - Start page resolved from the highest-level `README.md`
 - Local full-text search with keyboard shortcuts
+- Live reload: connected browsers refresh automatically when a docs file changes
 - GitHub-style admonitions such as `> [!NOTE]`
 - Broken internal link warnings with inline indicators
 - CLI starts a local webserver and opens the browser
