@@ -46,6 +46,52 @@ describe('renderDocument', () => {
     expect(page.html).toContain('src="/docs-assets/reference/shared/mascot.svg"');
   });
 
+  it('resolves reference links whose definition is glued to a paragraph', async () => {
+    await fs.mkdir(root, { recursive: true });
+    const file = path.join(root, 'README.md');
+    await fs.writeFile(file, 'See [send_all_offers][1] for details.\n[1]: https://example.com/send_all_offers\n');
+
+    const page = await renderDocument(file, 'README');
+
+    expect(page.html).toContain('<a href="https://example.com/send_all_offers">send_all_offers</a>');
+    expect(page.html).not.toContain('[send_all_offers][1]');
+    expect(page.html).not.toContain('[1]:');
+  });
+
+  it('resolves reference links glued to a list item', async () => {
+    await fs.mkdir(root, { recursive: true });
+    const file = path.join(root, 'README.md');
+    await fs.writeFile(file, '- [send_all_offers][1]\n[1]: https://example.com/send_all_offers\n');
+
+    const page = await renderDocument(file, 'README');
+
+    expect(page.html).toContain('<a href="https://example.com/send_all_offers">send_all_offers</a>');
+  });
+
+  it('leaves reference-definition lines inside fenced code blocks literal', async () => {
+    await fs.mkdir(root, { recursive: true });
+    const file = path.join(root, 'README.md');
+    await fs.writeFile(
+      file,
+      [
+        'See [send_all_offers][1] for details.',
+        '[1]: https://example.com/send_all_offers',
+        '',
+        '```',
+        'literal [send_all_offers][2]',
+        '[2]: https://inside-code.example',
+        '```',
+        '',
+      ].join('\n'),
+    );
+
+    const page = await renderDocument(file, 'README');
+
+    expect(page.html).toContain('<a href="https://example.com/send_all_offers">send_all_offers</a>');
+    expect(page.html).toContain('[2]: https://inside-code.example');
+    expect(page.html).not.toContain('href="https://inside-code.example"');
+  });
+
   it('renders note admonitions', async () => {
     await fs.mkdir(root, { recursive: true });
     const file = path.join(root, 'README.md');

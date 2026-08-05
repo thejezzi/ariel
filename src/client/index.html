@@ -11,13 +11,24 @@
       <div class="app-layout">
         <aside class="app-sidebar">
           <div class="app-sidebar-scroll">
-            <button id="search-trigger" class="search-trigger" type="button" aria-label="Open search">Search docs</button>
+            <button
+              id="search-trigger"
+              class="search-trigger"
+              type="button"
+              aria-label="Open search"
+            >
+              Search docs
+            </button>
             <nav id="sidebar-tree"></nav>
           </div>
           <div class="app-sidebar-footer">
             <label class="app-theme-label">
               <span>Theme</span>
-              <select id="theme-select" aria-label="Theme" class="app-theme-select">
+              <select
+                id="theme-select"
+                aria-label="Theme"
+                class="app-theme-select"
+              >
                 <option value="system">System</option>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -46,12 +57,27 @@
       </div>
     </div>
 
-    <button id="clear-search-highlights" class="clear-search-highlights clear-search-highlights-floating" type="button" hidden>Clear highlights</button>
-    <div id="page-processing-toast" class="page-processing-toast" hidden>Processing links and page metadata…</div>
+    <button
+      id="clear-search-highlights"
+      class="clear-search-highlights clear-search-highlights-floating"
+      type="button"
+      hidden
+    >
+      Clear highlights
+    </button>
+    <div id="page-processing-toast" class="page-processing-toast" hidden>
+      Processing links and page metadata…
+    </div>
 
     <div id="search-overlay" class="search-overlay" hidden>
       <div class="search-modal">
-        <input id="search-input" class="search-input search-input-modal" type="search" placeholder="Search docs" aria-label="Search docs" />
+        <input
+          id="search-input"
+          class="search-input search-input-modal"
+          type="search"
+          placeholder="Search docs"
+          aria-label="Search docs"
+        />
         <div id="search-results" class="search-results-modal"></div>
       </div>
     </div>
