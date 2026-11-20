@@ -212,12 +212,19 @@
     @apply max-w-[78ch];
   }
 
-  .page-processing-toast {
+  .page-processing-toast,
+  .reload-banner {
     @apply fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full border px-4 py-2 text-sm shadow-lg;
     border-color: var(--app-border);
     background-color: color-mix(in srgb, var(--app-bg) 88%, transparent);
     color: var(--app-muted);
     backdrop-filter: blur(10px);
+  }
+
+  .reload-banner {
+    @apply bottom-16 cursor-pointer;
+    color: var(--app-fg);
+    border-color: color-mix(in srgb, #38bdf8 45%, var(--app-border));
   }
 
   .app-toc {

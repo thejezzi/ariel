@@ -23,6 +23,18 @@
           </div>
           <div class="app-sidebar-footer">
             <label class="app-theme-label">
+              <span>Live reload</span>
+              <select
+                id="reload-mode-select"
+                aria-label="Live reload"
+                class="app-theme-select"
+              >
+                <option value="auto">Auto</option>
+                <option value="manual">On click</option>
+                <option value="off">Off</option>
+              </select>
+            </label>
+            <label class="app-theme-label">
               <span>Theme</span>
               <select
                 id="theme-select"
@@ -64,6 +76,9 @@
       hidden
     >
       Clear highlights
+    </button>
+    <button id="reload-banner" class="reload-banner" type="button" hidden>
+      Docs changed — click to reload
     </button>
     <div id="page-processing-toast" class="page-processing-toast" hidden>
       Processing links and page metadata…

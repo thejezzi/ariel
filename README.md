@@ -11,7 +11,7 @@ Local documentation renderer for a simple `docs/` folder.
 - `.order` files for explicit ordering
 - Start page resolved from the highest-level `README.md`
 - Local full-text search with keyboard shortcuts
-- Live reload: connected browsers refresh automatically when a docs file changes
+- Live reload with Auto / On click / Off modes, keeping your scroll position across reloads
 - GitHub-style admonitions such as `> [!NOTE]`
 - Broken internal link warnings with inline indicators
 - CLI starts a local webserver and opens the browser
@@ -53,6 +53,18 @@ becomes the docs directory and the route is the file basename.
 
 Only `.md` and `.mdx` files are supported in single-file mode; other files exit
 with a clear error.
+
+## Live reload
+
+The sidebar footer has a **Live reload** selector with three modes:
+
+- **Auto** — the browser reloads as soon as a watched file changes and restores
+  your scroll position, so a save keeps you where you were reading.
+- **On click** — changes show a "Docs changed — click to reload" banner instead
+  of reloading; clicking it reloads (and restores the scroll position).
+- **Off** — changes are ignored.
+
+The choice is stored in `localStorage` under `docs-renderer-reload-mode`.
 
 Pick a port explicitly:
 
